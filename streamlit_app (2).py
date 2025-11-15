@@ -1,7 +1,7 @@
 import streamlit as st
 import re
 
-st.title("Free Summarizer (No API, No External Libraries)")
+st.title("Text Summarize")
 
 def summarize_text(text, num_sentences=3):
     # Split into sentences
