@@ -1,33 +1,22 @@
 import streamlit as st
-from transformers import T5Tokenizer, T5ForConditionalGeneration
+from sumy.parsers.plaintext import PlainTextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lex_rank import LexRankSummarizer
 
-st.title("Free Summarizer (No API Key)")
+st.title("Free Text Summarizer (No API Key, Streamlit Compatible)")
 
-@st.cache_resource
-def load_model():
-    model = T5ForConditionalGeneration.from_pretrained("t5-small")
-    tokenizer = T5Tokenizer.from_pretrained("t5-small")
-    return model, tokenizer
-
-model, tokenizer = load_model()
-
-source_text = st.text_area("Enter text:", height=250)
+text = st.text_area("Enter text to summarize:", height=300)
 
 if st.button("Summarize"):
-    if not source_text.strip():
-        st.error("Please enter text first.")
+    if not text.strip():
+        st.error("Please enter some text.")
     else:
-        input_text = "summarize: " + source_text
-        inputs = tokenizer.encode(input_text, return_tensors="pt", max_length=512, truncation=True)
+        parser = PlainTextParser.from_string(text, Tokenizer("english"))
+        summarizer = LexRankSummarizer()
 
-        summary_ids = model.generate(
-            inputs,
-            max_length=150,
-            min_length=40,
-            length_penalty=2.0,
-            num_beams=4,
-            early_stopping=True
-        )
+        summary_sentences = summarizer(parser.document, 5)   # 5 sentences summary
 
-        summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+        summary = " ".join([str(sentence) for sentence in summary_sentences])
+
+        st.subheader("Summary:")
         st.success(summary)
